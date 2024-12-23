@@ -1,0 +1,164 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+class BankAccount {
+    private String accountHolder;
+    private double balance;
+    private double totalDeposits = 0.0;
+    private double totalWithdrawals = 0.0;
+
+    public BankAccount(String accountHolder) {
+        this.accountHolder = accountHolder;
+        this.balance = 0.0;
+    }
+
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            totalDeposits += amount;
+        }
+    }
+
+    public void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            totalWithdrawals += amount;
+        }
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public double getTotalDeposits() {
+        return totalDeposits;
+    }
+
+    public double getTotalWithdrawals() {
+        return totalWithdrawals;
+    }
+
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+}
+
+public class BankApplication extends JFrame implements ActionListener {
+    private BankAccount account;
+    private JTextField nameField, amountField;
+    private JTextArea outputArea;
+
+    public BankApplication() {
+        setTitle("Bank Application");
+        setSize(400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new FlowLayout());
+
+        
+        JLabel nameLabel = new JLabel("Account Holder's Name:");
+        nameField = new JTextField(20);
+        add(nameLabel);
+        add(nameField);
+
+        
+        JButton createAccountButton = new JButton("Create Account");
+        createAccountButton.addActionListener(this);
+        add(createAccountButton);
+
+      
+        JLabel amountLabel = new JLabel("Amount:");
+        amountField = new JTextField(10);
+        add(amountLabel);
+        add(amountField);
+
+       
+        JButton depositButton = new JButton("Deposit");
+        depositButton.addActionListener(this);
+        add(depositButton);
+
+        JButton withdrawButton = new JButton("Withdraw");
+        withdrawButton.addActionListener(this);
+        add(withdrawButton);
+
+        JButton checkBalanceButton = new JButton("Check Balance");
+        checkBalanceButton.addActionListener(this);
+        add(checkBalanceButton);
+
+        JButton receiptButton = new JButton("Generate Receipt");
+        receiptButton.addActionListener(this);
+        add(receiptButton);
+
+
+        outputArea = new JTextArea(12, 30);
+        outputArea.setEditable(false);
+        add(new JScrollPane(outputArea));
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String command = e.getActionCommand();
+
+        if (command.equals("Create Account")) {
+            String name = nameField.getText().trim();
+            if (name.isEmpty()) {
+                outputArea.append("Please enter a valid name.\n");
+                return;
+            }
+            account = new BankAccount(name);
+            outputArea.append("Account created for: " + name + "\n");
+        } else if (account == null) {
+            outputArea.append("Please create an account first.\n");
+        } else if (command.equals("Generate Receipt")) {
+            generateReceipt();
+        } else {
+            double amount;
+            try {
+                amount = Double.parseDouble(amountField.getText());
+            } catch (NumberFormatException ex) {
+                outputArea.append("Invalid amount. Please enter a number.\n");
+                return;
+            }
+
+            switch (command) {
+                case "Deposit":
+                    account.deposit(amount);
+                    outputArea.append("Deposited: $" + amount + "\n");
+                    break;
+                case "Withdraw":
+                    if (account.getBalance() >= amount) {
+                        account.withdraw(amount);
+                        outputArea.append("Withdrew: $" + amount + "\n");
+                    } else {
+                        outputArea.append("Insufficient balance.\n");
+                    }
+                    break;
+                case "Check Balance":
+                    outputArea.append("Current balance: $" + account.getBalance() + "\n");
+                    break;
+            }
+        }
+    }
+
+    private void generateReceipt() {
+        if (account == null) {
+            outputArea.append("No account exists to generate a receipt.\n");
+            return;
+        }
+
+        String receipt = "------ RECEIPT ------\n" +
+                         "Account Holder: " + account.getAccountHolder() + "\n" +
+                         "Total Deposits: $" + String.format("%.2f", account.getTotalDeposits()) + "\n" +
+                         "Total Withdrawals: $" + String.format("%.2f", account.getTotalWithdrawals()) + "\n" +
+                         "Current Balance: $" + String.format("%.2f", account.getBalance()) + "\n" +
+                         "---------------------\n";
+        outputArea.append(receipt);
+    }
+
+    public static void main(String[] args) {
+        new BankApplication();
+    }
+}
